@@ -1,7 +1,7 @@
-CREATE DATABASE invoiceMailer_database;
+CREATE DATABASE goldentagservice_database;
 
 CREATE USER Viggo WITH PASSWORD 'Viggo123Password';
-GRANT ALL PRIVILEGES ON DATABASE invoiceMailer_database TO Viggo;
+GRANT ALL PRIVILEGES ON DATABASE goldentagservice_database TO Viggo;
 
 DROP TABLE IF EXISTS invoices;
 DROP TABLE IF EXISTS orders;
@@ -55,7 +55,7 @@ SELECT * FROM invoices;
 SELECT * FROM orders;
 SELECT * FROM failed_processed_policy;
 
-psql -U postgres -d invoicemailer_database
+psql -U postgres -d goldentagservice_database
 Viggo123Password
 
 
