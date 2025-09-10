@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -134,15 +135,15 @@ public class InvoiceServiceTest {
         orders.add(new Order("Produkt A", "Opis A", 1, 100.0));
         final LocalDateTime ordersDate = LocalDateTime.parse("2024-01-01 14:30:00", formatter);
         final String buyerPhone = "987654321";
-        final InvoiceEntity lastInvoiceEntity = new InvoiceEntity(new Invoice(5,
-                                                                              "Anna Nowak",
-                                                                              "Kwiatowa 12",
-                                                                              "anna.nowak@example.com",
-                                                                              null,
-                                                                              buyerPhone,
-                                                                              ordersDate,
-                                                                              false,
-                                                                              orders));
+        final Optional<InvoiceEntity> lastInvoiceEntity = Optional.of(new InvoiceEntity(new Invoice(5,
+                                                                                                    "Anna Nowak",
+                                                                                                    "Kwiatowa 12",
+                                                                                                    "anna.nowak@example.com",
+                                                                                                    null,
+                                                                                                    buyerPhone,
+                                                                                                    ordersDate,
+                                                                                                    false,
+                                                                                                    orders)));
         when(invoiceRepository.getLastInvoices()).thenReturn(lastInvoiceEntity);
 
         // when

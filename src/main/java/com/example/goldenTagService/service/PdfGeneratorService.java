@@ -33,8 +33,8 @@ public class PdfGeneratorService {
 
     final static private String SELLER_FIRMA_NAME = "Viggo-Programer";
     final static private String SELLER_NAME = "Michał Rydzanicz";
-    final static private String SELLER_Address = "Popowicka 68/17, 54-237 Wrocław";
-    final static private String SELLER_NR = "6574654654654";
+    final static private String SELLER_Address = "Chełm 5, 59-305 Rudna";
+    final static private String SELLER_NR = "785640173";
     final static private String SELLER_NIP = "6574654654654";
     final static private DecimalFormat df = new DecimalFormat("#.00");
 

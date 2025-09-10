@@ -2,6 +2,7 @@ package com.example.goldenTagService.controller;
 
 import com.example.goldenTagService.controler.InvoiceController;
 import com.example.goldenTagService.controler.InvoiceRequest;
+import com.example.goldenTagService.controler.OrderRequest;
 import com.example.goldenTagService.model.Invoice;
 import com.example.goldenTagService.model.Order;
 import com.example.goldenTagService.service.InvoiceService;
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
@@ -33,13 +35,13 @@ import static org.mockito.Mockito.when;
 
 public class InvoiceControllerTest {
 
+    final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     @Mock
     private InvoiceService invoiceService;
-
     private InvoiceController invoiceController;
+
     @Mock
     private PdfGeneratorService pdfGeneratorService;
-    final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @BeforeEach
     public void setUp() {
@@ -57,8 +59,22 @@ public class InvoiceControllerTest {
         validRequest.setBuyerAddressEmail("buyer@example.com");
         validRequest.setBuyerNip("1234567890");
         validRequest.setBuyerPhone("123456789");
-        validRequest.setBuyerPhone("123456789");
-        validRequest.setOrders(orders);
+        validRequest.setOrders(List.of(new OrderRequest(1L,
+                                                        "Product",
+                                                        "Description",
+                                                        "Category",
+                                                        2,
+                                                        200.0,
+                                                        200.0,
+                                                        400.0,
+                                                        null,
+                                                        null,
+                                                        null,
+                                                        null,
+                                                        null,
+                                                        false,
+                                                        null)));
+        validRequest.setAcceptedTerms(true);
 
         final Invoice lastInvoice = new Invoice(1,
                                                 "Last Buyer",
@@ -77,11 +93,11 @@ public class InvoiceControllerTest {
 
         // then
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals("Invoice saved successfully", response.getBody());
-
+        assertTrue(response.getBody().startsWith("Invoice saved successfully"));
         verify(invoiceService, times(1)).getLastInvoices();
         verify(invoiceService, times(1)).saveInvoiceWithOrders(any(Invoice.class), anyList());
     }
+
 
     @Test
     void testSaveInvoiceNullRequest() {
@@ -136,7 +152,22 @@ public class InvoiceControllerTest {
         validRequest.setBuyerName("Test Buyer");
         validRequest.setBuyerAddress("Some Address");
         validRequest.setBuyerAddressEmail("buyer@example.com");
-        validRequest.setOrders(Collections.singletonList(new Order("Product", "Description", 1, 100.0)));
+        validRequest.setOrders(Collections.singletonList(new OrderRequest(1L,
+                                                                          "Product",
+                                                                          "Description",
+                                                                          "Category",
+                                                                          1,
+                                                                          100.0,
+                                                                          120.0,
+                                                                          100.0,
+                                                                          "M",
+                                                                          "Czerwony",
+                                                                          "OKRAGLA",
+                                                                          "LUX",
+                                                                          "BACK",
+                                                                          true,
+                                                                          "0.15")));
+        validRequest.setAcceptedTerms(true);
 
         when(invoiceService.getLastInvoices()).thenThrow(new RuntimeException("Database error"));
 
@@ -145,9 +176,8 @@ public class InvoiceControllerTest {
 
         // then
         assertEquals(500, response.getStatusCodeValue());
-        assertEquals("Error saving invoice", response.getBody());
+        assertTrue(response.getBody().startsWith("Error saving invoice"));
     }
-
 
     @Test
     public void testGenerateInvoiceSuccess() {
@@ -202,9 +232,7 @@ public class InvoiceControllerTest {
         // then
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(1,
-                     response.getBody()
-                             .size());
+        assertEquals(1, response.getBody().size());
         verify(invoiceService, times(1)).getInvoicesByInvoiceId("FV/001/2025");
     }
 
@@ -260,9 +288,7 @@ public class InvoiceControllerTest {
         // then
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(1,
-                     response.getBody()
-                             .size());
+        assertEquals(1, response.getBody().size());
         verify(invoiceService, times(1)).getInvoicesByAddressEmail("jan.kowalski@example.com");
     }
 
@@ -292,9 +318,7 @@ public class InvoiceControllerTest {
         // then
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(2,
-                     response.getBody()
-                             .size());
+        assertEquals(2, response.getBody().size());
         verify(invoiceService, times(1)).getAllInvoices();
     }
 
@@ -310,17 +334,14 @@ public class InvoiceControllerTest {
         // then
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(2,
-                     response.getBody()
-                             .size());
+        assertEquals(2, response.getBody().size());
         verify(invoiceService, times(1)).getUniqueEmail();
     }
 
     @Test
     public void testGetUniqueEmailError() {
         // given
-        doThrow(new RuntimeException("Database error")).when(invoiceService)
-                                                       .getUniqueEmail();
+        doThrow(new RuntimeException("Database error")).when(invoiceService).getUniqueEmail();
 
         // when
         ResponseEntity<List<String>> response = invoiceController.getUniqueEmail();
@@ -348,8 +369,7 @@ public class InvoiceControllerTest {
     @Test
     public void testGetAllInvoicesError() {
         // given
-        doThrow(new RuntimeException("Database error")).when(invoiceService)
-                                                       .getAllInvoices();
+        doThrow(new RuntimeException("Database error")).when(invoiceService).getAllInvoices();
 
         // when
         ResponseEntity<List<Invoice>> response = invoiceController.getInvoices(null, null);

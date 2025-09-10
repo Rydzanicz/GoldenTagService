@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
@@ -19,7 +20,7 @@ public interface InvoiceRepository extends JpaRepository<InvoiceEntity, Long> {
     List<InvoiceEntity> findInvoicesByEmail(String email);
 
     @Query(value = "SELECT * FROM invoices ORDER BY invoice_id DESC LIMIT 1", nativeQuery = true)
-    InvoiceEntity getLastInvoices();
+    Optional<InvoiceEntity> getLastInvoices();
 
     @Query(value = "SELECT DISTINCT email FROM invoices", nativeQuery = true)
     List<String> findUniqueEmails();

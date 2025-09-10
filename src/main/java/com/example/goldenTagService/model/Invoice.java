@@ -3,6 +3,7 @@ package com.example.goldenTagService.model;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,7 +11,6 @@ import java.util.regex.Pattern;
 public class Invoice {
     private static final String INVOICE_ID_PATTERN = "^FV/(\\d{1,9})/(\\d{4})$";
     private static final String FORMAT = "FV/%09d/%s";
-    private String invoiceId;
     private final String buyerName;
     private final String buyerAddress;
     private final String buyerAddressEmail;
@@ -19,8 +19,8 @@ public class Invoice {
     private final LocalDateTime orderDate;
     private final boolean isEmailSend;
     private final List<Order> order;
-
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private String invoiceId;
 
     public Invoice(final int invoiceNR,
                    final String buyerName,
@@ -98,6 +98,18 @@ public class Invoice {
         this.orderDate = LocalDateTime.parse(orderDate, formatter);
         this.isEmailSend = isEmailSend;
         this.order = order;
+    }
+
+    public Invoice() {
+        this.invoiceId = generateInvoiceId(1);
+        this.buyerName = null;
+        this.buyerAddress = null;
+        this.buyerAddressEmail = null;
+        this.buyerNIP = null;
+        this.buyerPhone = null;
+        this.orderDate = LocalDateTime.now();
+        this.isEmailSend = true;
+        this.order = new ArrayList<>();
     }
 
     public Invoice(final InvoiceEntity invoice) {

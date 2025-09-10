@@ -8,6 +8,7 @@ import com.example.goldenTagService.repository.InvoiceRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class InvoiceService {
@@ -19,9 +20,7 @@ public class InvoiceService {
 
     public List<Invoice> getAllInvoices() {
         final List<InvoiceEntity> entities = invoiceRepository.findAll();
-        return entities.stream()
-                       .map(this::mapToInvoice)
-                       .toList();
+        return entities.stream().map(this::mapToInvoice).toList();
     }
 
     public List<String> getUniqueEmail() {
@@ -29,7 +28,9 @@ public class InvoiceService {
     }
 
     public Invoice getLastInvoices() {
-        return new Invoice(invoiceRepository.getLastInvoices());
+        final Optional<InvoiceEntity> invoiceEntity = invoiceRepository.getLastInvoices();
+
+        return invoiceEntity.map(Invoice::new).orElseGet(Invoice::new);
     }
 
     public void updateEmailSendStatus(final String invoiceId, final boolean status) {
@@ -43,9 +44,7 @@ public class InvoiceService {
 
     public List<Invoice> getInvoicesByAddressEmail(String addressEmail) {
         final List<InvoiceEntity> entities = invoiceRepository.findInvoicesByEmail(addressEmail);
-        return entities.stream()
-                       .map(this::mapToInvoice)
-                       .toList();
+        return entities.stream().map(this::mapToInvoice).toList();
     }
 
     public List<Invoice> getNoSendInvoicesWithExcluding(final List<Invoice> processedFailed) {
@@ -53,18 +52,13 @@ public class InvoiceService {
         if (processedFailed.isEmpty()) {
             entities = invoiceRepository.findNoSendInvoices();
         } else {
-            entities = invoiceRepository.findUnsentInvoicesExcluding(processedFailed.stream()
-                                                                                    .map(Invoice::getInvoiceId)
-                                                                                    .toList());
+            entities = invoiceRepository.findUnsentInvoicesExcluding(processedFailed.stream().map(Invoice::getInvoiceId).toList());
         }
-        return entities.stream()
-                       .map(this::mapToInvoice)
-                       .toList();
+        return entities.stream().map(this::mapToInvoice).toList();
     }
 
     private Invoice mapToInvoice(final InvoiceEntity entity) {
-        return new Invoice(Integer.parseInt(entity.getInvoiceId()
-                                                  .split("/")[1]),
+        return new Invoice(Integer.parseInt(entity.getInvoiceId().split("/")[1]),
                            entity.getName(),
                            entity.getAddress(),
                            entity.getEmail(),
@@ -72,10 +66,7 @@ public class InvoiceService {
                            entity.getPhone(),
                            entity.getOrderDate(),
                            entity.isEmailSend(),
-                           entity.getOrders()
-                                 .stream()
-                                 .map(Order::new)
-                                 .toList());
+                           entity.getOrders().stream().map(Order::new).toList());
     }
 
     public void saveInvoiceWithOrders(final Invoice invoice, final List<Order> orders) {
@@ -84,13 +75,11 @@ public class InvoiceService {
         }
         final InvoiceEntity invoiceEntity = new InvoiceEntity(invoice);
 
-        final List<OrderEntity> ordersEntity = orders.stream()
-                                                     .map(order -> {
-                                                         OrderEntity orderEntity = new OrderEntity(order);
-                                                         orderEntity.setInvoice(invoiceEntity);
-                                                         return orderEntity;
-                                                     })
-                                                     .toList();
+        final List<OrderEntity> ordersEntity = orders.stream().map(order -> {
+            OrderEntity orderEntity = new OrderEntity(order);
+            orderEntity.setInvoice(invoiceEntity);
+            return orderEntity;
+        }).toList();
 
         invoiceEntity.setOrders(ordersEntity);
 

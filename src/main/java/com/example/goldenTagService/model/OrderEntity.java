@@ -48,7 +48,7 @@ public class OrderEntity {
         productName = order.getName();
         productDescription = order.getDescription();
         quantity = order.getQuantity();
-        price = order.getPrice();
+        price = order.getPriceWithVAT();
 
     }
 

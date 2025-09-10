@@ -1,8 +1,11 @@
 package com.example.goldenTagService.controler;
 
 import com.example.goldenTagService.model.Invoice;
+import com.example.goldenTagService.model.Order;
 import com.example.goldenTagService.service.InvoiceService;
 import com.example.goldenTagService.service.PdfGeneratorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,12 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 public class InvoiceController {
+
+    private static final Logger logger = LoggerFactory.getLogger(InvoiceController.class);
     private final InvoiceService invoiceService;
 
     public InvoiceController(final InvoiceService invoiceService) {
@@ -30,36 +34,95 @@ public class InvoiceController {
 
     @PostMapping(value = "/save-invoice", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> saveInvoice(@RequestBody InvoiceRequest invoiceRequest) {
-        if (invoiceRequest == null || invoiceRequest.getBuyerName() == null || invoiceRequest.getOrders() == null) {
+        if (invoiceRequest == null ||
+                    invoiceRequest.getBuyerName() == null ||
+                    invoiceRequest.getOrders() == null) {
+            logger.error("Invalid request data - required fields missing");
             throw new IllegalArgumentException("Invalid request payload");
+        }
+
+        if (invoiceRequest.getAcceptedTerms() == null || !invoiceRequest.getAcceptedTerms()) {
+            logger.error("Terms and conditions were not accepted by client: {}", invoiceRequest.getBuyerName());
+            return ResponseEntity.badRequest()
+                                 .body("Terms and conditions have to be accepted");
         }
 
         try {
             final Invoice lastInvoice = invoiceService.getLastInvoices();
-            final Invoice newInvoice = new Invoice(lastInvoice.extractAndIncreaseInvoiceNumber(),
-                                                   invoiceRequest.getBuyerName(),
-                                                   invoiceRequest.getBuyerAddress(),
-                                                   invoiceRequest.getBuyerAddressEmail(),
-                                                   invoiceRequest.getBuyerNip(),
-                                                   invoiceRequest.getBuyerPhone(),
-                                                   LocalDateTime.now(),
-                                                   false,
-                                                   invoiceRequest.getOrders());
+           final List<Order> orders = invoiceRequest.getOrders().stream()
+                                               .map(orderReq -> {
+                                                   StringBuilder description = new StringBuilder();
+                                                   description.append("Kategoria: ").append(orderReq.getCategory()).append("; ");
 
-            invoiceService.saveInvoiceWithOrders(newInvoice, invoiceRequest.getOrders());
+                                                   if (orderReq.getSize() != null) {
+                                                       description.append("Rozmiar: ").append(orderReq.getSize()).append("; ");
+                                                   }
+                                                   if (orderReq.getColor() != null) {
+                                                       description.append("Kolor: ").append(orderReq.getColor()).append("; ");
+                                                   }
+                                                   if (orderReq.getTagShape() != null) {
+                                                       description.append("Kształt: ").append(orderReq.getTagShape()).append("; ");
+                                                   }
+
+                                                   if (orderReq.getHasPersonalization() != null && orderReq.getHasPersonalization()) {
+                                                       description.append("PERSONALIZACJA - ");
+                                                       if (orderReq.getFrontText() != null && !orderReq.getFrontText().isEmpty()) {
+                                                           description.append("Przód: '").append(orderReq.getFrontText()).append("'; ");
+                                                       }
+                                                       if (orderReq.getBackText() != null && !orderReq.getBackText().isEmpty()) {
+                                                           description.append("Tył: '").append(orderReq.getBackText()).append("'; ");
+                                                       }
+                                                   }
+
+                                                   return new Order(
+                                                           orderReq.getName(),
+                                                           description.toString(),
+                                                           orderReq.getQuantity(),
+                                                           orderReq.getPrice()
+                                                   );
+                                               })
+                                               .collect(Collectors.toList());
+
+            final Invoice newInvoice = new Invoice(
+                    lastInvoice.extractAndIncreaseInvoiceNumber(),
+                    invoiceRequest.getBuyerName(),
+                    invoiceRequest.getBuyerAddress(),
+                    invoiceRequest.getBuyerAddressEmail(),
+                    invoiceRequest.getBuyerNip(),
+                    invoiceRequest.getBuyerPhone(),
+                    LocalDateTime.now(),
+                    false,
+                    orders
+            );
+
+            logger.info("Saving invoice {} for client: {}",
+                        newInvoice.getInvoiceId(), invoiceRequest.getBuyerName());
+
+            if (invoiceRequest.getOrderSummary() != null) {
+                logger.info("Order statistics - Products: {}, Personalized: {}, Shipping method: {}",
+                            invoiceRequest.getOrderSummary().getUniqueProducts(),
+                            invoiceRequest.getOrderSummary().getHasPersonalizedItems(),
+                            invoiceRequest.getOrderSummary().getShippingMethod());
+            }
+
+            if (invoiceRequest.getBrowserInfo() != null) {
+                logger.debug("Browser information: {}", invoiceRequest.getBrowserInfo());
+            }
+
+            invoiceService.saveInvoiceWithOrders(newInvoice, orders);
+
             return ResponseEntity.ok()
                                  .contentType(MediaType.TEXT_PLAIN)
-                                 .body("Invoice saved successfully");
-
+                                 .body("Invoice saved successfully with ID: " + newInvoice.getInvoiceId());
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body("Error saving invoice");
+                                 .body("Error saving invoice: " + e.getMessage());
         }
     }
 
     @PostMapping(value = "/generate-invoice", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> generateInvoice(@RequestParam() String invoiceId) {
+    public ResponseEntity<byte[]> generateInvoice(@RequestParam() String invoiceId) {
         if (invoiceId == null) {
             throw new IllegalArgumentException("Invalid request payload");
         }
@@ -71,12 +134,7 @@ public class InvoiceController {
             final byte[] out = pdfGeneratorService.generateInvoicePdf(invoice)
                                                   .toByteArray();
 
-
             final String fileName = "Faktura-" + invoiceId + ".pdf";
-
-
-            final Map<String, Object> response = new HashMap<>();
-            response.put("fileName", fileName);
 
             final HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Disposition", "attachment; filename=" + fileName);
@@ -84,7 +142,7 @@ public class InvoiceController {
 
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body("Error generating invoice");
+                                 .body(("Error generating invoice: " + e.getMessage()).getBytes());
         }
     }
 
@@ -123,11 +181,9 @@ public class InvoiceController {
 
         try {
             final List<String> invoices = invoiceService.getUniqueEmail();
-
             return ResponseEntity.ok(invoices);
 
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                  .build();
         }

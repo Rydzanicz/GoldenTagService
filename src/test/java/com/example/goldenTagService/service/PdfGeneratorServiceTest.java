@@ -50,15 +50,13 @@ public class PdfGeneratorServiceTest {
         orders.add(new Order("Produkt A", "Opis A", 2, 100.0));
         //when
 
-        final double sumNet = orders.stream()
-                                    .mapToDouble(p -> p.getPrice() * p.getQuantity())
-                                    .sum();
-        final double sumVat = orders.stream()
-                                    .mapToDouble(p -> (p.getVAT()) * p.getQuantity())
-                                    .sum();
+        final double sumNet = orders.stream().mapToDouble(p -> p.getPrice() * p.getQuantity()).sum();
+        final double sumVat = orders.stream().mapToDouble(p -> (p.getVAT()) * p.getQuantity()).sum();
+        final double sumBrut = orders.stream().mapToDouble(p -> p.getPriceWithVAT() * p.getQuantity()).sum();
         //then
-        assertEquals(200.0, sumNet);
-        assertEquals(46.0, sumVat);
+        assertEquals(162.60162601626016, sumNet);
+        assertEquals(37.398373983739845, sumVat);
+        assertEquals(200.0, sumBrut);
     }
 
     @Test
@@ -80,14 +78,14 @@ public class PdfGeneratorServiceTest {
 
 
         //when
-        final double sumNet = orders.stream()
-                                    .mapToDouble(p -> p.getPrice() * p.getQuantity())
-                                    .sum();
+        final double sumNet = orders.stream().mapToDouble(p -> p.getPrice() * p.getQuantity()).sum();
+        final double sumBrut = orders.stream().mapToDouble(p -> p.getPriceWithVAT() * p.getQuantity()).sum();
 
         //then
         assertNotNull(pdfOutput);
         assertTrue(pdfOutput.size() > 0);
-        assertEquals("200,00", new DecimalFormat("#.00").format(sumNet));
+        assertEquals("200,00", new DecimalFormat("#.00").format(sumBrut));
+        assertEquals("162,60", new DecimalFormat("#.00").format(sumNet));
     }
 
     @Test
@@ -137,10 +135,7 @@ public class PdfGeneratorServiceTest {
         //then
         assertNotNull(pdfOutput);
         assertTrue(pdfOutput.size() > 0);
-        assertEquals(46.0,
-                     orders.stream()
-                           .mapToDouble(p -> (p.getPriceWithVAT() - p.getPrice()) * p.getQuantity())
-                           .sum());
+        assertEquals(37.398373983739845, orders.stream().mapToDouble(p -> (p.getPriceWithVAT() - p.getPrice()) * p.getQuantity()).sum());
     }
 
     @Test

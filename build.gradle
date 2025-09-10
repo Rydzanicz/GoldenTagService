@@ -39,6 +39,8 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations'
 }
 
 tasks.named('test') {

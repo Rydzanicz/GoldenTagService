@@ -6,9 +6,10 @@ public class Order {
     private final int quantity;
     private final double price;
     private final double priceWithVAT;
+    private final double vatRate = 0.23;
 
 
-    public Order(final String name, final String description, final int quantity, final double price) {
+    public Order(final String name, final String description, final int quantity, final double priceWithVAT) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Name cannot be null or empty.");
         }
@@ -18,22 +19,22 @@ public class Order {
         if (quantity == 0) {
             throw new IllegalArgumentException("Quantity cannot be zero.");
         }
-        if (price == 0) {
+        if (priceWithVAT == 0) {
             throw new IllegalArgumentException("Price date cannot be zero.");
         }
         this.name = name;
         this.description = description;
         this.quantity = quantity;
-        this.price = price;
-        this.priceWithVAT = price * 1.23;
+        this.priceWithVAT = priceWithVAT;
+        this.price = priceWithVAT / (1 + this.vatRate);
     }
 
     public Order(final OrderEntity order) {
         this.name = order.getProductName();
         this.description = order.getProductDescription();
         this.quantity = order.getQuantity();
-        this.price = order.getPrice();
-        this.priceWithVAT = price * 1.23;
+        this.priceWithVAT = order.getPrice();
+        this.price = priceWithVAT / (1 + this.vatRate);
     }
 
     public int getQuantity() {

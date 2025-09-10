@@ -39,7 +39,7 @@ CREATE TABLE failed_processed_policy (
 
 
 INSERT INTO invoices (invoice_id, name, address, email, nip,phone, order_date, is_email_send)
-VALUES ('FV/000000001/2024', 'Jan Kowalski', 'ul. Testowa 10, 00-001 Warszawa', 'jan.kowalski@example.com', '1234567890','123456789', '2024-01-01 14:30:00', false);
+VALUES ('FV/000000001/2024', 'Jan Kowalski', 'ul. Testowa 10, 00-001 Warszawa', 'jan.kowalski@example.com', '1234567890','123456789', '2024-01-01 14:30:00', true);
 
 INSERT INTO orders (invoice_id, product_name, product_description, quantity, price)
 VALUES
@@ -55,7 +55,7 @@ SELECT * FROM invoices;
 SELECT * FROM orders;
 SELECT * FROM failed_processed_policy;
 
-psql -U postgres -d goldentagservice_database
+psql -U viggo -d goldentagservice_database
 Viggo123Password
 
 
