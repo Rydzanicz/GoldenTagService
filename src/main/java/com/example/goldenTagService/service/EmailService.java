@@ -13,11 +13,13 @@ public class EmailService {
 
     private static final String EMAIL_FROM = "misiekr95@wp.pl";
     private static final String MY_EMAIL = "rydzanicz.mm@gmail.com";
-    private static final String SUBJECT = "Dziękujemy za zakup – Twoja faktura w załączniku";
+    private static final String SUBJECT = "Dziękujemy za udział  w etapie testowania – Twoja faktura testowa w załączniku";
     private final JavaMailSender mailSender;
 
     private final String emailBody = "Szanowni Państwo,\n\n"
-                                             + "Dziękujemy za dokonanie zakupu w naszej firmie. Poniżej znajdą Państwo szczegóły transakcji oraz fakturę VAT w załączniku.\n\n"
+                                             + "Dziękujemy za dokonanie testowego zakupu w naszej firmie. Poniżej znajdą Państwo " +
+                                             "szczegóły" +
+                                             " transakcji oraz fakturę VAT w załączniku.\n\n"
                                              + "W razie jakichkolwiek pytań lub wątpliwości związanych z fakturą lub zakupem, prosimy o kontakt z naszym biurem obsługi klienta.\n"
                                              + "Pamiętajcie, że na tę wiadomość nie należy odpowiadać, ponieważ jest generowana automatycznie.\n\n"
                                              + "Z wyrazami szacunku,\n"
