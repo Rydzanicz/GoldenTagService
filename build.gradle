@@ -4,11 +4,8 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.6'
 }
 
-apply plugin: 'io.spring.dependency-management'
-
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -20,35 +17,49 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.springfox:springfox-swagger2:2.9.2'
-    implementation 'io.springfox:springfox-swagger-ui:2.9.2'
-    implementation 'org.projectlombok:lombok:1.18.22'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'com.itextpdf:kernel:7.2.5'
-    implementation 'com.itextpdf:layout:7.2.5'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'org.postgresql:postgresql'
-    implementation 'org.postgresql:postgresql:42.5.0'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    testImplementation 'org.mockito:mockito-core'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    implementation platform('com.google.cloud:spring-cloud-gcp-dependencies:4.1.4')
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Google Cloud Platform
+    implementation platform('com.google.cloud:spring-cloud-gcp-dependencies:4.9.4')
     implementation 'com.google.cloud:spring-cloud-gcp-starter-sql-postgresql'
+
+    // Database
+    runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'com.h2database:h2'
 
+    // PDF Generation
+    implementation 'com.itextpdf:kernel:7.2.5'
+    implementation 'com.itextpdf:layout:7.2.5'
+
+    // Utils
+    implementation 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Documentation (OpenAPI)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
+    // JSON Processing
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+
+    // Development
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-core'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 tasks.withType(JavaCompile) {
